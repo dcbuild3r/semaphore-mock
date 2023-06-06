@@ -1,0 +1,18 @@
+[package]
+name = "mock-semaphore-tree"
+authors = ["dcbuilder<dc.builder@worldcoin.org>"]
+description = "Generate a mock World ID semaphore tree to generate mock inclusion proofs for unit testing. Doesn't require signup-sequencer and uses semaphore-rs to generate the tree and the proofs."
+license = "MIT"
+version = "0.1.0"
+edition = "2023"
+repository = "https://github.com/dcbuild3r/mock-semaphore-tree"
+keywords = ["semaphore", "worldcoin", "mock", "unit-test", "inclusion-proof", "world-id"]
+categories = ["cryptography", "worldcoin", "semaphore"]
+readme = "README.md"
+license-file = "LICENSE"
+
+[dependencies]
+semaphore = { git = "https://github.com/worldcoin/semaphore-rs" }
+num-bigint = { version = "0.4", default-features = false, features = ["rand"] }
+color-eyre = "0.6"
+ruint = { version = "1.2.0", features = ["serde", "num-bigint", "ark-ff"] }
