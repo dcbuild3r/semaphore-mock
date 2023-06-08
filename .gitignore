@@ -17,3 +17,6 @@ Cargo.lock
 # Added by cargo
 
 /target
+
+# Ignore json output
+out/*.json
