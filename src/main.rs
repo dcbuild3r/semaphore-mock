@@ -125,6 +125,19 @@ fn main() {
 
             let root = tree.root();
 
+            // Output tree root to json
+            let json_root = serde_json::to_string(&root).unwrap();
+
+            // Write it to the filesystem at out/root.json
+            let file_path = "out/root.json";
+
+            // Open a file in write mode
+            let mut file = File::create(file_path).expect("Unable to create file");
+
+            // Write the JSON string to the file
+            file.write_all(json_root.as_bytes())
+                .expect("Unable to write to file");
+
             let merkle_proof = tree.proof(identity_index);
 
             let selected_identity = &identity_vec[identity_index];
