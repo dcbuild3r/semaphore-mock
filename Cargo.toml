@@ -1,11 +1,11 @@
 [package]
 name = "semaphore-mock"
-authors = ["dcbuilder<dc.builder@worldcoin.org>"]
+authors = ["dcbuilder<dc.builder@worldcoin.org>", "Jakub Trad<jakub.trad@toolsforhumanity.com>" ]
 description = "Generate a mock World ID semaphore tree to generate mock inclusion proofs for unit testing. Doesn't require signup-sequencer and uses semaphore-rs to generate the tree and the proofs."
 license = "MIT"
 version = "0.1.0"
 edition = "2021"
-repository = "https://github.com/dcbuild3r/mock-semaphore-tree"
+repository = "https://github.com/dcbuild3r/semaphore-mock"
 keywords = ["semaphore", "worldcoin", "mock", "unit-test", "inclusion-proof", "world-id"]
 categories = ["cryptography", "worldcoin", "semaphore"]
 readme = "README.md"

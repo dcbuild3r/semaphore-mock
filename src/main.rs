@@ -133,9 +133,11 @@ fn main() {
             let signal_hash = hash_to_field(b"xxx");
             let external_nullifier_hash = hash_to_field(b"appId");
 
+            // generate nullifier hash
             let nullifier_hash =
                 generate_nullifier_hash(selected_identity, external_nullifier_hash);
 
+            // Generate the proof
             let proof = generate_proof(
                 selected_identity,
                 &merkle_proof,
@@ -143,6 +145,8 @@ fn main() {
                 signal_hash,
             )
             .unwrap();
+
+            // verify a proof against the selected identity locally
             let success = verify_proof(
                 root,
                 nullifier_hash,
@@ -154,6 +158,19 @@ fn main() {
             .unwrap();
 
             assert!(success);
+
+            // Serialize proof into JSON
+            let json_proof = serde_json::to_string(&proof).unwrap();
+
+            // Write it to the filesystem at out/proof.json
+            let file_path = "out/proof.json";
+
+            // Open a file in write mode
+            let mut file = File::create(file_path).expect("Unable to create file");
+
+            // Write the JSON string to the file
+            file.write_all(json_proof.as_bytes())
+                .expect("Unable to write to file");
         }
     }
 }
