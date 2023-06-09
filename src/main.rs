@@ -10,7 +10,32 @@ use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize)]
 struct IdentityRandomness {
-    secrets_vec: Vec<[u8; 32]>,
+    secrets_vec: Vec<IdentitySecrets>,
+}
+
+struct IdentitySecrets {
+    inner: [u8; 32],
+}
+
+impl Serialize for IdentitySecrets {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        hex::encode(self.inner).serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for IdentitySecrets {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let hex_string = String::deserialize(deserializer)?;
+        let bytes = hex::decode(hex_string).map_err(serde::de::Error::custom)?;
+        if bytes.len() != 32 {
+            return Err(serde::de::Error::custom(
+                "IdentitySecrets must be 32 bytes long",
+            ));
+        }
+        let mut inner = [0u8; 32];
+        inner.copy_from_slice(&bytes);
+        Ok(Self { inner })
+    }
 }
 
 #[derive(Debug, Clone, Parser)]
@@ -34,12 +59,11 @@ enum Args {
     },
 }
 
-fn read_file_to_json_string(file_path: PathBuf) -> Result<String, Box<dyn std::error::Error>> {
+fn read_file_to_string(file_path: PathBuf) -> Result<String, Box<dyn std::error::Error>> {
     let mut file = File::open(file_path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let json_string = serde_json::to_string(&contents)?;
-    Ok(json_string)
+    Ok(contents)
 }
 
 fn main() {
@@ -56,7 +80,9 @@ fn main() {
                 let mut random_bytes = [0u8; 32];
                 rng.fill(&mut random_bytes);
 
-                identity_randomness.push(random_bytes);
+                identity_randomness.push(IdentitySecrets {
+                    inner: random_bytes,
+                });
             }
 
             let identity_randomness = IdentityRandomness {
@@ -79,7 +105,7 @@ fn main() {
             identity_index,
             tree_depth,
         } => {
-            let identities_json = read_file_to_json_string(identities).unwrap();
+            let identities_json = read_file_to_string(identities).unwrap();
 
             let identities: IdentityRandomness = serde_json::from_str(&identities_json).unwrap();
 
@@ -90,7 +116,7 @@ fn main() {
             let mut identity_vec = Vec::<Identity>::new();
 
             for i in 0..identities.secrets_vec.len() {
-                let id = Identity::from_secret(&identities.secrets_vec[i], None);
+                let id = Identity::from_secret(&identities.secrets_vec[i].inner, None);
 
                 tree = tree.update(i, &id.commitment());
 
