@@ -4,7 +4,7 @@ use semaphore::{
     hash_to_field, identity::Identity, poseidon_tree::LazyPoseidonTree, protocol::*, Field,
 };
 use serde::{Deserialize, Serialize};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
@@ -91,6 +91,14 @@ fn main() {
 
             let json_tree = serde_json::to_string(&identity_randomness).unwrap();
 
+            match fs::create_dir("out") {
+                Ok(()) => println!("Directory created successfully."),
+                Err(err) => {
+                    eprintln!("Error creating directory: {}", err);
+                    // Handle the error
+                }
+            }
+
             let file_path = "out/random_identities.json";
 
             // Open a file in write mode
@@ -107,7 +115,8 @@ fn main() {
         } => {
             let identities_json = read_file_to_string(identities).unwrap();
 
-            let identities: IdentityRandomness = serde_json::from_str(&identities_json).unwrap();
+            let mut identities: IdentityRandomness =
+                serde_json::from_str(&identities_json).unwrap();
 
             // generate merkle tree
             let leaf = Field::from(0);
@@ -116,7 +125,7 @@ fn main() {
             let mut identity_vec = Vec::<Identity>::new();
 
             for i in 0..identities.secrets_vec.len() {
-                let id = Identity::from_secret(&identities.secrets_vec[i].inner, None);
+                let id = Identity::from_secret(&mut identities.secrets_vec[i].inner, None);
 
                 tree = tree.update(i, &id.commitment());
 
