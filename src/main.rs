@@ -101,15 +101,18 @@ fn main() {
 
             let json_tree = serde_json::to_string(&identity_randomness).unwrap();
 
-            match fs::create_dir("out") {
-                Ok(()) => println!("Directory created successfully."),
-                Err(err) => {
-                    eprintln!("Error creating directory: {}", err);
-                    // Handle the error
-                }
-            }
+            let file_path = PathBuf::from("out/random_identities.json");
 
-            let file_path = "out/random_identities.json";
+            fs::metadata(file_path.parent().unwrap())
+                .map(|metadata| {
+                    if !metadata.is_dir() {
+                        fs::create_dir_all(file_path.parent().unwrap()).unwrap_or_else(|err| {
+                            eprintln!("Error creating directory: {}", err);
+                            // Handle the error
+                        });
+                    }
+                })
+                .ok();
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
@@ -178,14 +181,6 @@ fn main() {
 
             assert!(success);
 
-            match fs::create_dir("out") {
-                Ok(()) => println!("Directory created successfully."),
-                Err(err) => {
-                    eprintln!("Error creating directory: {}", err);
-                    // Handle the error
-                }
-            }
-
             let output: OutputJson = OutputJson {
                 root,
                 signal_hash,
@@ -200,15 +195,16 @@ fn main() {
             // Write it to the filesystem at out/proof.json
             let file_path = PathBuf::from("out/semaphore_proof.json");
 
-            let result = fs::create_dir_all(file_path.parent().unwrap());
-
-            match result {
-                Ok(()) => println!("out/ directory created successfully."),
-                Err(err) => {
-                    eprintln!("Error creating directory: {}", err);
-                    // Handle the error
-                }
-            }
+            fs::metadata(file_path.parent().unwrap())
+                .map(|metadata| {
+                    if !metadata.is_dir() {
+                        fs::create_dir_all(file_path.parent().unwrap()).unwrap_or_else(|err| {
+                            eprintln!("Error creating directory: {}", err);
+                            // Handle the error
+                        });
+                    }
+                })
+                .ok();
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
