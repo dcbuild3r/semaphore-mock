@@ -1,5 +1,6 @@
 use clap::Parser;
 use rand::Rng;
+use ruint::Uint;
 use semaphore::{
     hash_to_field, identity::Identity, poseidon_tree::LazyPoseidonTree, protocol::*, Field,
 };
@@ -15,6 +16,15 @@ struct IdentityRandomness {
 
 struct IdentitySecrets {
     inner: [u8; 32],
+}
+
+#[derive(Serialize, Deserialize)]
+struct OutputJson {
+    root: Uint<256, 4>,
+    signal_hash: Uint<256, 4>,
+    external_nullifier_hash: Uint<256, 4>,
+    nullifier_hash: Uint<256, 4>,
+    proof: Proof,
 }
 
 impl Serialize for IdentitySecrets {
@@ -91,15 +101,9 @@ fn main() {
 
             let json_tree = serde_json::to_string(&identity_randomness).unwrap();
 
-            match fs::create_dir("out") {
-                Ok(()) => println!("Directory created successfully."),
-                Err(err) => {
-                    eprintln!("Error creating directory: {}", err);
-                    // Handle the error
-                }
-            }
+            let file_path = PathBuf::from("out/random_identities.json");
 
-            let file_path = "out/random_identities.json";
+            fs::create_dir_all(file_path.parent().unwrap()).expect("Unable to create directory");
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
@@ -133,19 +137,6 @@ fn main() {
             }
 
             let root = tree.root();
-
-            // Output tree root to json
-            let json_root = serde_json::to_string(&root).unwrap();
-
-            // Write it to the filesystem at out/root.json
-            let file_path = "out/root.json";
-
-            // Open a file in write mode
-            let mut file = File::create(file_path).expect("Unable to create file");
-
-            // Write the JSON string to the file
-            file.write_all(json_root.as_bytes())
-                .expect("Unable to write to file");
 
             let merkle_proof = tree.proof(identity_index);
 
@@ -181,17 +172,26 @@ fn main() {
 
             assert!(success);
 
-            // Serialize proof into JSON
-            let json_proof = serde_json::to_string(&proof).unwrap();
+            let output: OutputJson = OutputJson {
+                root,
+                signal_hash,
+                external_nullifier_hash,
+                nullifier_hash,
+                proof,
+            };
+
+            // Serialize output into JSON
+            let output_json = serde_json::to_string(&output).unwrap();
 
             // Write it to the filesystem at out/proof.json
-            let file_path = "out/proof.json";
+            let file_path = PathBuf::from("out/semaphore_proof.json");
+
+            fs::create_dir_all(file_path.parent().unwrap()).expect("Unable to create directory");
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
 
-            // Write the JSON string to the file
-            file.write_all(json_proof.as_bytes())
+            file.write_all(output_json.as_bytes())
                 .expect("Unable to write to file");
         }
     }
