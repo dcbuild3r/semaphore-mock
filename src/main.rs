@@ -103,16 +103,7 @@ fn main() {
 
             let file_path = PathBuf::from("out/random_identities.json");
 
-            fs::metadata(file_path.parent().unwrap())
-                .map(|metadata| {
-                    if !metadata.is_dir() {
-                        fs::create_dir_all(file_path.parent().unwrap()).unwrap_or_else(|err| {
-                            eprintln!("Error creating directory: {}", err);
-                            // Handle the error
-                        });
-                    }
-                })
-                .ok();
+            fs::create_dir_all(file_path.parent().unwrap()).expect("Unable to create directory");
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
@@ -195,16 +186,7 @@ fn main() {
             // Write it to the filesystem at out/proof.json
             let file_path = PathBuf::from("out/semaphore_proof.json");
 
-            fs::metadata(file_path.parent().unwrap())
-                .map(|metadata| {
-                    if !metadata.is_dir() {
-                        fs::create_dir_all(file_path.parent().unwrap()).unwrap_or_else(|err| {
-                            eprintln!("Error creating directory: {}", err);
-                            // Handle the error
-                        });
-                    }
-                })
-                .ok();
+            fs::create_dir_all(file_path.parent().unwrap()).expect("Unable to create directory");
 
             // Open a file in write mode
             let mut file = File::create(file_path).expect("Unable to create file");
